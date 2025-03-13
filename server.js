@@ -31,6 +31,13 @@ const pool = new Pool({
 const getUserIP = (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
 // Claim a coupon with enhanced abuse prevention
+app.get("/", (req, res) => {
+    res.send("🚀 Coupon Backend is Live!");
+});
+
+
+
+
 app.post('/claim', async (req, res) => {
     const userIP = getUserIP(req);
     const cookie = req.cookies.couponClaimed; // Check if cookie exists

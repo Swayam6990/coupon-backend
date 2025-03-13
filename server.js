@@ -19,25 +19,33 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// ✅ PostgreSQL Database Connection (Required for Render)
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+    ssl: { rejectUnauthorized: false }  // ✅ Required for Render PostgreSQL
 });
 
-// Middleware to get user IP
-const getUserIP = (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+// ✅ Check database connection
+pool.connect()
+    .then(() => console.log("✅ Connected to PostgreSQL Database!"))
+    .catch(err => {
+        console.error("🚨 Database connection error:", err.message);
+        process.exit(1); // Stop the server if database fails
+    });
 
-// Claim a coupon with enhanced abuse prevention
+// ✅ Root Route (To check if backend is live)
 app.get("/", (req, res) => {
     res.send("🚀 Coupon Backend is Live!");
 });
 
+// ✅ Middleware to get user IP
+const getUserIP = (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-
-
+// ✅ Claim a coupon with enhanced abuse prevention
 app.post('/claim', async (req, res) => {
     const userIP = getUserIP(req);
     const cookie = req.cookies.couponClaimed; // Check if cookie exists
@@ -74,11 +82,17 @@ app.post('/claim', async (req, res) => {
     res.json({ message: "Coupon claimed successfully!", coupon: rows[0] });
 });
 
-// Get available coupons
+// ✅ Get available coupons
 app.get('/coupons', async (req, res) => {
-    const coupons = await pool.query('SELECT * FROM coupons WHERE is_claimed = false');
-    res.json(coupons.rows);
+    try {
+        const coupons = await pool.query('SELECT * FROM coupons WHERE is_claimed = false');
+        res.json(coupons.rows);
+    } catch (error) {
+        console.error("🚨 Error fetching coupons:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 });
 
-// Start the server
-app.listen(5000, () => console.log("✅ Server running on port 5000"));
+// ✅ Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

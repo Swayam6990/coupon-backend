@@ -9,7 +9,7 @@ const app = express();
 // ✅ CORS Setup for Render (Replace with your Netlify frontend URL)
 app.use(
   cors({
-    origin: "coupon-frontend-phi.vercel.app", // Change to your deployed frontend URL
+    origin: "https://localhsot:3000", // Change to your deployed frontend URL
     credentials: true,
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
